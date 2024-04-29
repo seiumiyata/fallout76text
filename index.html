@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fallout 76 テキストアドベンチャー</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: monospace;
+      background-color: black;
+      color: green;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    #output {
+      width: 100%;
+      max-width: 800px;
+      height: 400px;
+      overflow: auto;
+      border: 1px solid green;
+      padding: 10px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+    #input {
+      width: 100%;
+      max-width: 800px;
+      padding: 5px;
+      font-family: monospace;
+      background-color: black;
+      color: green;
+      border: 1px solid green;
+      box-sizing: border-box;
+    }
+    .choice {
+      color: yellow;
+      cursor: pointer;
+    }
+    .choice:hover {
+      color: lightgreen;
+    }
+    @media (max-width: 600px) {
+      #output {
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="output"></div>
+  <input type="text" id="input" placeholder="コマンドを入力してください...">
+  
+  <script>
+    const output = document.getElementById('output');
+    const input = document.getElementById('input');
+    
+    // ゲームの状態を管理するオブジェクト
+    const gameState = {
+      location: 'Vault 76',
+      inventory: [],
+      companions: [],
+      health: 100,
+      story: 0,
+      gameOver: false,
+    };
+    
+    // ゲームのオープニング
+    async function openingScene() {
+      await displayTextWithDelay(`2102年10月23日...`);
+      await displayTextWithDelay(`核戦争から25年が経過した。`);
+      await displayTextWithDelay(`Vault 76のドアが開く時がついに来た。`);
+      await displayTextWithDelay(`あなたは生存者の一人として、荒廃したウェイストランドに一歩を踏み出す。`);
+      await displayTextWithDelay(`果てしなく広がる荒野の中で、あなたの物語が始まる...`);
+      await startGame();
+    }
+    
+    // ゲームの初期メッセージを表示
+    async function startGame() {
+      await displayTextWithDelay(`Fallout 76 テキストアドベンチャーへようこそ！`);
+      await displayTextWithDelay(`あなたは${gameState.location}にいます。`);
+      await displayChoices();
+    }
+    
+    // テキストを遅延表示する関数
+    async function displayTextWithDelay(text, delay = 50) {
+      for (let i = 0; i < text.length; i++) {
+        output.innerHTML += text.charAt(i);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+      output.innerHTML += '<br>';
+    }
+    
+    // 選択肢を表示する関数
+    async function displayChoices() {
+      if (!gameState.gameOver) {
+        await displayTextWithDelay(`何をしますか？`);
+        output.innerHTML += `
+          <p class="choice" onclick="processInput('見る')">見る</p>
+          <p class="choice" onclick="processInput('調べる')">調べる</p>
+          <p class="choice" onclick="processInput('移動')">移動</p>
+          <p class="choice" onclick="processInput('話す')">話す</p>
+          <p class="choice" onclick="processInput('戦う')">戦う</p>
+        `;
+      }
+    }
+    
+    // プレイヤーの入力を処理する関数
+    async function processInput(command) {
+      output.innerHTML = '';
+      
+      if (command === '見る') {
+        await displayTextWithDelay(`${gameState.location}を見渡します。`);
+        if (gameState.location === 'Vault 76') {
+          await displayTextWithDelay(`Vaultの中は静かだ。他の生存者たちはすでに外の世界へ旅立ったようだ。`);
+          await displayTextWithDelay(`あなたは最後の一人となった。重大な使命を背負っている。`);
+        } else if (gameState.location === 'ウェイストランド') {
+          await displayTextWithDelay(`荒廃した景色が広がっている。遠くには廃墟となった建物が見える。`);
+          await displayTextWithDelay(`生存者たちの姿が見えるが、彼らは疲弊しているようだ。`);
+        } else if (gameState.location === '廃墟の町') {
+          await displayTextWithDelay(`かつては賑わっていたであろう町は、今では廃墟と化している。`);
+          await displayTextWithDelay(`崩れた建物やがれきが散乱し、わずかに生存者の姿が見える。`);
+        }
+      } else if (command === '調べる') {
+        await displayTextWithDelay(`${gameState.location}を調べます。`);
+        if (gameState.location === 'Vault 76') {
+          await displayTextWithDelay(`Vaultスーツとピップボーイを見つけた。装備しよう。`);
+          gameState.inventory.push('Vaultスーツ', 'ピップボーイ');
+          await displayTextWithDelay(`あなたはVault 76の overseer の メッセージを見つけた。`);
+          await displayTextWithDelay(`「Vault 76の住人たちへ。私はすでにVaultを出発しました。」`);
+          await displayTextWithDelay(`「あなたたちには、ウェイストランドを再建する使命があります。」`);
+          await displayTextWithDelay(`「協力して、新しい文明を築いてください。あなたたちが最後の希望です。」`);
+        } else if (gameState.location === 'ウェイストランド') {
+          await displayTextWithDelay(`地面に何かが落ちている。拾ってみよう。`);
+          const randomItem = Math.random();
+          if (randomItem < 0.4) {
+            await displayTextWithDelay(`薬品を手に入れた。`);
+            gameState.inventory.push('薬品');
+          } else if (randomItem < 0.7) {
+            await displayTextWithDelay(`食料を手に入れた。`);
+            gameState.inventory.push('食料');
+          } else {
+            await displayTextWithDelay(`武器を手に入れた。`);
+            gameState.inventory.push('武器');
+          }
+        } else if (gameState.location === '廃墟の町') {
+          await displayTextWithDelay(`瓦礫の中から役に立ちそうなアイテムを見つけた。`);
+          const randomItem = Math.random();
+          if (randomItem < 0.5) {
+            await displayTextWithDelay(`回復薬を手に入れた。`);
+            gameState.inventory.push('回復薬');
+          } else {
+            await displayTextWithDelay(`弾薬を手に入れた。`);
+            gameState.inventory.push('弾薬');
+          }
+        }
+      } else if (command === '移動') {
+        if (gameState.location === 'Vault 76') {
+          await displayTextWithDelay(`Vaultを出て、ウェイストランドへ向かいます。`);
+          gameState.location = 'ウェイストランド';
+          await displayTextWithDelay(`外の世界は想像以上に過酷だった。生き残るために戦わなければ。`);
+        } else if (gameState.location === 'ウェイストランド') {
+          await displayTextWithDelay(`さらに奥へ進みます。`);
+          gameState.story++;
+          if (gameState.story === 1) {
+            await displayTextWithDelay(`遠くに人影が見える。近づいてみよう。`);
+            await displayTextWithDelay(`見知らぬ人物と出会った。話しかけてみよう。`);
+          } else if (gameState.story === 2) {
+            await displayTextWithDelay(`廃墟となった町に到着した。`);
+            gameState.location = '廃墟の町';
+            await displayTextWithDelay(`町の中心部で、生存者たちが集まっているようだ。`);
+          } else if (gameState.story === 3) {
+            await displayTextWithDelay(`生存者たちと協力して、町の再建を始めることにした。`);
+            await displayTextWithDelay(`あなたは生存者たちをまとめるリーダーとなった。`);
+          } else if (gameState.story === 4) {
+            await displayTextWithDelay(`町の再建が進み、新しいコミュニティが形成された。`);
+            await displayTextWithDelay(`あなたは町の人々から信頼されるリーダーとなった。`);
+            await displayTextWithDelay(`しかし、平和な日々は長くは続かなかった...`);
+            await displayTextWithDelay(`ある日、突如として強力な敵が現れた。`);
+            await displayTextWithDelay(`あなたは町を守るため、立ち上がることを決意した。`);
+          } else if (gameState.story === 5) {
+            await displayTextWithDelay(`敵との戦いに勝利した。`);
+            await displayTextWithDelay(`平和が訪れ、町は再び活気を取り戻した。`);
+            await displayTextWithDelay(`あなたは伝説のヒーローとなり、人々から称えられた。`);
+            gameState.gameOver = true;
+          }
+        }
+      } else if (command === '話す') {
+        if (gameState.companions.length > 0) {
+          await displayTextWithDelay(`仲間と会話します。`);
+          const randomCompanion = gameState.companions[Math.floor(Math.random() * gameState.companions.length)];
+          const randomDialogue = Math.random();
+          if (randomDialogue < 0.3) {
+            await displayTextWithDelay(`${randomCompanion}: 「一緒に頑張ろう。この荒野で生き抜くんだ。」`);
+          } else if (randomDialogue < 0.6) {
+            await displayTextWithDelay(`${randomCompanion}: 「あなたがいてくれて心強いよ。一緒にこの困難を乗り越えよう。」`);
+          } else {
+            await displayTextWithDelay(`${randomCompanion}: 「私たちは生存者だ。助け合って、新しい世界を作り上げるんだ。」`);
+          }
+        } else {
+          await displayTextWithDelay(`話せる相手がいません。`);
+        }
+      } else if (command === '戦う') {
+        if (gameState.story >= 4) {
+          await displayTextWithDelay(`敵が現れた！`);
+          await battle();
+        } else {
+          await displayTextWithDelay(`今は戦うべき相手がいません。`);
+        }
+      } else {
+        await displayTextWithDelay(`"${command}"はわかりません。`);
+      }
+      
+      await displayChoices();
+      output.scrollTop = output.scrollHeight;
+    }
+    
+    // 戦闘シーン
+    async function battle() {
+      let enemyHealth = 100;
+      
+      while (gameState.health > 0 && enemyHealth > 0) {
+        await displayTextWithDelay(`敵の体力: ${enemyHealth}`);
+        await displayTextWithDelay(`あなたの体力: ${gameState.health}`);
+        await displayTextWithDelay(`どうする？`);
+        
+        output.innerHTML += `
+          <p class="choice" onclick="attack()">攻撃する</p>
+          <p class="choice" onclick="defend()">防御する</p>
+          <p class="choice" onclick="useItem()">アイテムを使う</p>
+          <p class="choice" onclick="flee()">逃げる</p>
+        `;
+        
+        const battleChoice = await new Promise(resolve => {
+          window.attack = () => resolve('攻撃');
+          window.defend = () => resolve('防御');
+          window.useItem = () => resolve('アイテム');
+          window.flee = () => resolve('逃げる');
+        });
+        
+        output.innerHTML = '';
+        
+        if (battleChoice === '攻撃') {
+          const damage = Math.floor(Math.random() * 20) + 10;
+          await displayTextWithDelay(`敵に${damage}のダメージを与えた！`);
+          enemyHealth -= damage;
+          
+          if (enemyHealth > 0) {
+            const enemyDamage = Math.floor(Math.random() * 15) + 5;
+            await displayTextWithDelay(`敵からの反撃！${enemyDamage}のダメージを受けた！`);
+            gameState.health -= enemyDamage;
+          }
+        } else if (battleChoice === '防御') {
+          await displayTextWithDelay(`防御した！敵からのダメージを軽減した！`);
+          const enemyDamage = Math.floor(Math.random() * 10) + 5;
+          await displayTextWithDelay(`敵からの攻撃！${enemyDamage}のダメージを受けた！`);
+          gameState.health -= enemyDamage;
+        } else if (battleChoice === 'アイテム') {
+          if (gameState.inventory.includes('回復薬')) {
+            await displayTextWithDelay(`回復薬を使った！体力が回復した！`);
+            gameState.health += 30;
+            gameState.inventory = gameState.inventory.filter(item => item !== '回復薬');
+          } else {
+            await displayTextWithDelay(`使えるアイテムがない！`);
+          }
+        } else if (battleChoice === '逃げる') {
+          await displayTextWithDelay(`逃げ出した！`);
+          break;
+        }
+      }
+      
+      if (gameState.health <= 0) {
+        await displayTextWithDelay(`あなたは力尽きた...`); 
+        await displayTextWithDelay(`ゲームオーバー`); 
+        gameState.gameOver = true;
+         } else if (enemyHealth <= 0) {
+            await displayTextWithDelay(`敵を倒した！`); 
+            await displayTextWithDelay(`勝利を収めた！`);
+        }
+    }
+    
+    // エンディングシーン
+    async function endingScene() {
+        await displayTextWithDelay(`エピローグ`);
+        await displayTextWithDelay(`あなたは、ウェイストランドに希望をもたらした英雄となった。`);
+        await displayTextWithDelay(`人々は、あなたの功績を称え、あなたの名前を語り継いでいった。`);
+        await displayTextWithDelay(`あなたは、新しい文明の礎を築いたのだ。`);
+        await displayTextWithDelay(`しかし、平和な日々は永遠に続くわけではない。`);
+        await displayTextWithDelay(`新たな脅威が、ウェイストランドに影を落とすかもしれない。`);
+        await displayTextWithDelay(`だが、あなたはもう一人ではない。`);
+        await displayTextWithDelay(`仲間たちと共に、どんな困難にも立ち向かっていける。`);
+        await displayTextWithDelay(`あなたの冒険は、新たな章を迎えるのだ。`);
+        await displayTextWithDelay(`Fallout 76 テキストアドベンチャー`);
+        await displayTextWithDelay(`プレイしていただき、ありがとうございました。`);
+    }
+  
+  // 入力フィールドでEnterキーが押されたときに入力を処理
+  input.addEventListener('keydown', async (event) => {
+    if (event.key === 'Enter') {
+      const command = input.value;
+      input.value = '';
+      await processInput(command);
+      if (gameState.gameOver) {
+        await endingScene();
+      }
+    }
+  });
+  
+  // ゲームを開始
+  openingScene();
+
+    </script>
+</body>
+</html>
