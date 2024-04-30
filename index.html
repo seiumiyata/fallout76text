@@ -62,6 +62,14 @@
       health: 100,
       story: 0,
       gameOver: false,
+      flags: {
+        metStranger: false,
+        arrivedAtRuinedTown: false,
+        becameLeader: false,
+        startedRebuilding: false,
+        enemyAppeared: false,
+        defeatedEnemy: false
+      }
     };
     
     // ゲームのオープニング
@@ -159,29 +167,37 @@
           gameState.location = 'ウェイストランド';
           await displayTextWithDelay(`外の世界は想像以上に過酷だった。生き残るために戦わなければ。`);
         } else if (gameState.location === 'ウェイストランド') {
-          await displayTextWithDelay(`さらに奥へ進みます。`);
-          gameState.story++;
-          if (gameState.story === 1) {
+          if (!gameState.flags.metStranger) {
             await displayTextWithDelay(`遠くに人影が見える。近づいてみよう。`);
             await displayTextWithDelay(`見知らぬ人物と出会った。話しかけてみよう。`);
-          } else if (gameState.story === 2) {
+            gameState.flags.metStranger = true;
+          } else if (!gameState.flags.arrivedAtRuinedTown) {
             await displayTextWithDelay(`廃墟となった町に到着した。`);
             gameState.location = '廃墟の町';
             await displayTextWithDelay(`町の中心部で、生存者たちが集まっているようだ。`);
-          } else if (gameState.story === 3) {
+            gameState.flags.arrivedAtRuinedTown = true;
+          } else {
+            await displayTextWithDelay(`もう先には進めないようだ。`);
+          }
+        } else if (gameState.location === '廃墟の町') {
+          if (!gameState.flags.becameLeader) {
             await displayTextWithDelay(`生存者たちと協力して、町の再建を始めることにした。`);
             await displayTextWithDelay(`あなたは生存者たちをまとめるリーダーとなった。`);
-          } else if (gameState.story === 4) {
+            gameState.flags.becameLeader = true;
+          } else if (!gameState.flags.startedRebuilding) {
             await displayTextWithDelay(`町の再建が進み、新しいコミュニティが形成された。`);
             await displayTextWithDelay(`あなたは町の人々から信頼されるリーダーとなった。`);
+            gameState.flags.startedRebuilding = true;
+          } else if (!gameState.flags.enemyAppeared) {
             await displayTextWithDelay(`しかし、平和な日々は長くは続かなかった...`);
             await displayTextWithDelay(`ある日、突如として強力な敵が現れた。`);
             await displayTextWithDelay(`あなたは町を守るため、立ち上がることを決意した。`);
-          } else if (gameState.story === 5) {
-            await displayTextWithDelay(`敵との戦いに勝利した。`);
-            await displayTextWithDelay(`平和が訪れ、町は再び活気を取り戻した。`);
-            await displayTextWithDelay(`あなたは伝説のヒーローとなり、人々から称えられた。`);
-            gameState.gameOver = true;
+            gameState.flags.enemyAppeared = true;
+          } else if (!gameState.flags.defeatedEnemy) {
+            await displayTextWithDelay(`敵が現れた！`);
+            await battle();
+          } else {
+            await displayTextWithDelay(`もう先には進めないようだ。`);
           }
         }
       } else if (command === '話す') {
@@ -200,7 +216,7 @@
           await displayTextWithDelay(`話せる相手がいません。`);
         }
       } else if (command === '戦う') {
-        if (gameState.story >= 4) {
+        if (gameState.flags.enemyAppeared && !gameState.flags.defeatedEnemy) {
           await displayTextWithDelay(`敵が現れた！`);
           await battle();
         } else {
@@ -272,42 +288,55 @@
         await displayTextWithDelay(`あなたは力尽きた...`); 
         await displayTextWithDelay(`ゲームオーバー`); 
         gameState.gameOver = true;
-         } else if (enemyHealth <= 0) {
-            await displayTextWithDelay(`敵を倒した！`); 
-            await displayTextWithDelay(`勝利を収めた！`);
-        }
+      } else if (enemyHealth <= 0) {
+        await displayTextWithDelay(`敵を倒した！`); 
+        await displayTextWithDelay(`勝利を収めた！`);
+        
+        // 「次へ」ボタンを表示
+        output.innerHTML += `<p class="choice" onclick="showEpilogue()">次へ</p>`;
+        
+        // 「次へ」ボタンがクリックされるまで待機
+        await new Promise(resolve => {
+          window.showEpilogue = () => {
+            resolve();
+          };
+        });
+        
+        // テキスト画面をクリア
+        output.innerHTML = '';
+        
+        // エピローグを表示
+        await endingScene();
+        gameState.gameOver = true;
+      }
     }
     
     // エンディングシーン
     async function endingScene() {
-        await displayTextWithDelay(`エピローグ`);
-        await displayTextWithDelay(`あなたは、ウェイストランドに希望をもたらした英雄となった。`);
-        await displayTextWithDelay(`人々は、あなたの功績を称え、あなたの名前を語り継いでいった。`);
-        await displayTextWithDelay(`あなたは、新しい文明の礎を築いたのだ。`);
-        await displayTextWithDelay(`しかし、平和な日々は永遠に続くわけではない。`);
-        await displayTextWithDelay(`新たな脅威が、ウェイストランドに影を落とすかもしれない。`);
-        await displayTextWithDelay(`だが、あなたはもう一人ではない。`);
-        await displayTextWithDelay(`仲間たちと共に、どんな困難にも立ち向かっていける。`);
-        await displayTextWithDelay(`あなたの冒険は、新たな章を迎えるのだ。`);
-        await displayTextWithDelay(`Fallout 76 テキストアドベンチャー`);
-        await displayTextWithDelay(`プレイしていただき、ありがとうございました。`);
+      await displayTextWithDelay(`エピローグ`);
+      await displayTextWithDelay(`あなたは、ウェイストランドに希望をもたらした英雄となった。`);
+      await displayTextWithDelay(`人々は、あなたの功績を称え、あなたの名前を語り継いでいった。`);
+      await displayTextWithDelay(`あなたは、新しい文明の礎を築いたのだ。`);
+      await displayTextWithDelay(`しかし、平和な日々は永遠に続くわけではない。`);
+      await displayTextWithDelay(`新たな脅威が、ウェイストランドに影を落とすかもしれない。`);
+      await displayTextWithDelay(`だが、あなたはもう一人ではない。`);
+      await displayTextWithDelay(`仲間たちと共に、どんな困難にも立ち向かっていける。`);
+      await displayTextWithDelay(`あなたの冒険は、新たな章を迎えるのだ。`);
+      await displayTextWithDelay(`Fallout 76 テキストアドベンチャー`);
+      await displayTextWithDelay(`プレイしていただき、ありがとうございました。`);
     }
-  
-  // 入力フィールドでEnterキーが押されたときに入力を処理
-  input.addEventListener('keydown', async (event) => {
-    if (event.key === 'Enter') {
-      const command = input.value;
-      input.value = '';
-      await processInput(command);
-      if (gameState.gameOver) {
-        await endingScene();
+    
+    // ゲームスタート
+    openingScene();
+    
+    // ユーザー入力を処理するイベントリスナー
+    input.addEventListener('keydown', async (event) => {
+      if (event.key === 'Enter') {
+        const command = input.value.trim();
+        input.value = '';
+        await processInput(command);
       }
-    }
-  });
-  
-  // ゲームを開始
-  openingScene();
-
-    </script>
+    });
+  </script>
 </body>
 </html>
