@@ -161,60 +161,110 @@
             gameState.inventory.push('弾薬');
           }
         }
-      } else if (command === '移動') {
+    } else if (command === '移動') {
         if (gameState.location === 'Vault 76') {
           await displayTextWithDelay(`Vaultを出て、ウェイストランドへ向かいます。`);
           gameState.location = 'ウェイストランド';
           await displayTextWithDelay(`外の世界は想像以上に過酷だった。生き残るために戦わなければ。`);
         } else if (gameState.location === 'ウェイストランド') {
-          if (!gameState.flags.metStranger) {
+          await displayTextWithDelay(`さらに奥へ進みます。`);
+          gameState.story++;
+          if (gameState.story === 1) {
             await displayTextWithDelay(`遠くに人影が見える。近づいてみよう。`);
             await displayTextWithDelay(`見知らぬ人物と出会った。話しかけてみよう。`);
-            gameState.flags.metStranger = true;
-          } else if (!gameState.flags.arrivedAtRuinedTown) {
+            gameState.companions.push('ストレンジャー'); // 仲間を追加
+          } else if (gameState.story === 2) {
             await displayTextWithDelay(`廃墟となった町に到着した。`);
             gameState.location = '廃墟の町';
             await displayTextWithDelay(`町の中心部で、生存者たちが集まっているようだ。`);
-            gameState.flags.arrivedAtRuinedTown = true;
-          } else {
-            await displayTextWithDelay(`もう先には進めないようだ。`);
-          }
-        } else if (gameState.location === '廃墟の町') {
-          if (!gameState.flags.becameLeader) {
+            gameState.companions.push('廃墟の町の生存者'); // 仲間を追加
+          } else if (gameState.story === 3) {
             await displayTextWithDelay(`生存者たちと協力して、町の再建を始めることにした。`);
             await displayTextWithDelay(`あなたは生存者たちをまとめるリーダーとなった。`);
-            gameState.flags.becameLeader = true;
-          } else if (!gameState.flags.startedRebuilding) {
+          } else if (gameState.story === 4) {
             await displayTextWithDelay(`町の再建が進み、新しいコミュニティが形成された。`);
             await displayTextWithDelay(`あなたは町の人々から信頼されるリーダーとなった。`);
-            gameState.flags.startedRebuilding = true;
-          } else if (!gameState.flags.enemyAppeared) {
             await displayTextWithDelay(`しかし、平和な日々は長くは続かなかった...`);
             await displayTextWithDelay(`ある日、突如として強力な敵が現れた。`);
             await displayTextWithDelay(`あなたは町を守るため、立ち上がることを決意した。`);
-            gameState.flags.enemyAppeared = true;
-          } else if (!gameState.flags.defeatedEnemy) {
-            await displayTextWithDelay(`敵が現れた！`);
-            await battle();
-          } else {
-            await displayTextWithDelay(`もう先には進めないようだ。`);
+          } else if (gameState.story === 5) {
+            await displayTextWithDelay(`敵との戦いに勝利した。`);
+            await displayTextWithDelay(`平和が訪れ、町は再び活気を取り戻した。`);
+            await displayTextWithDelay(`あなたは伝説のヒーローとなり、人々から称えられた。`);
+            gameState.gameOver = true;
           }
         }
-      } else if (command === '話す') {
+    } else if (command === '話す') {
         if (gameState.companions.length > 0) {
           await displayTextWithDelay(`仲間と会話します。`);
           const randomCompanion = gameState.companions[Math.floor(Math.random() * gameState.companions.length)];
-          const randomDialogue = Math.random();
-          if (randomDialogue < 0.3) {
-            await displayTextWithDelay(`${randomCompanion}: 「一緒に頑張ろう。この荒野で生き抜くんだ。」`);
-          } else if (randomDialogue < 0.6) {
-            await displayTextWithDelay(`${randomCompanion}: 「あなたがいてくれて心強いよ。一緒にこの困難を乗り越えよう。」`);
-          } else {
-            await displayTextWithDelay(`${randomCompanion}: 「私たちは生存者だ。助け合って、新しい世界を作り上げるんだ。」`);
+          const randomDialogue = Math.floor(Math.random() * 20);
+          switch (randomDialogue) {
+            case 0:
+              await displayTextWithDelay(`${randomCompanion}: 「一緒に頑張ろう。この荒野で生き抜くんだ。」`);
+              break;
+            case 1:
+              await displayTextWithDelay(`${randomCompanion}: 「あなたがいてくれて心強いよ。一緒にこの困難を乗り越えよう。」`);
+              break;
+            case 2:
+              await displayTextWithDelay(`${randomCompanion}: 「私たちは生存者だ。助け合って、新しい世界を作り上げるんだ。」`);
+              break;
+            case 3:
+              await displayTextWithDelay(`${randomCompanion}: 「この廃墟の中に、希望の光を見つけられるはずだ。」`);
+              break;
+            case 4:
+              await displayTextWithDelay(`${randomCompanion}: 「君の勇気に感謝している。一緒に戦えて光栄だよ。」`);
+              break;
+            case 5:
+              await displayTextWithDelay(`${randomCompanion}: 「過酷な状況下でも、君は決して諦めない。その強さを尊敬しているよ。」`);
+              break;
+            case 6:
+              await displayTextWithDelay(`${randomCompanion}: 「君と出会えたことが、私の人生を変えてくれた。」`);
+              break;
+            case 7:
+              await displayTextWithDelay(`${randomCompanion}: 「ここまで来られたのは、君のリーダーシップのおかげだ。」`);
+              break;
+            case 8:
+              await displayTextWithDelay(`${randomCompanion}: 「危険な道のりだけど、君と一緒なら乗り越えられる気がする。」`);
+              break;
+            case 9:
+              await displayTextWithDelay(`${randomCompanion}: 「君は私の大切な友人だ。これからもよろしく頼むよ。」`);
+              break;
+            case 10:
+              await displayTextWithDelay(`${randomCompanion}: 「君の優しさに、いつも助けられているんだ。」`);
+              break;
+            case 11:
+              await displayTextWithDelay(`${randomCompanion}: 「世界が変わっても、私たちの絆は変わらない。」`);
+              break;
+            case 12:
+              await displayTextWithDelay(`${randomCompanion}: 「君と出会えて本当に良かった。この出会いに感謝しているよ。」`);
+              break;
+            case 13:
+              await displayTextWithDelay(`${randomCompanion}: 「辛い時も、君の笑顔に救われているんだ。」`);
+              break;
+            case 14:
+              await displayTextWithDelay(`${randomCompanion}: 「君の決断力には、いつも助けられている。」`);
+              break;
+            case 15:
+              await displayTextWithDelay(`${randomCompanion}: 「君と一緒に、この世界を再建していきたい。」`);
+              break;
+            case 16:
+              await displayTextWithDelay(`${randomCompanion}: 「苦しい時も、君と一緒にいると乗り越えられる。」`);
+              break;
+            case 17:
+              await displayTextWithDelay(`${randomCompanion}: 「君の強さと優しさに、いつも励まされているよ。」`);
+              break;
+            case 18:
+              await displayTextWithDelay(`${randomCompanion}: 「どんな困難も、君と一緒なら怖くない。」`);
+              break;
+            case 19:
+              await displayTextWithDelay(`${randomCompanion}: 「これからも、君と共に歩んでいきたい。」`);
+              break;
           }
         } else {
           await displayTextWithDelay(`話せる相手がいません。`);
         }
+      
       } else if (command === '戦う') {
         if (gameState.flags.enemyAppeared && !gameState.flags.defeatedEnemy) {
           await displayTextWithDelay(`敵が現れた！`);
